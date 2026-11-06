@@ -37,6 +37,7 @@ const ChatPanel = ({
         <button
           onClick={onClose}
           className="p-1.5 rounded-xl text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition-colors cursor-pointer"
+          aria-label="Close chat"
         >
           <XIcon className="w-5 h-5" />
         </button>
@@ -46,7 +47,7 @@ const ChatPanel = ({
       <div className="flex-1 p-4 overflow-y-auto space-y-4">
         {messages.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-center text-slate-400 text-sm">
-            <p>NO messages yet.</p>
+            <p>No messages yet.</p>
             <p className="text-xs mt-1 text-slate-900">
               Send a message to start chatting with partitipants!
             </p>
@@ -91,11 +92,14 @@ const ChatPanel = ({
           value={text}
           onChange={(e) => setText(e.target.value)}
           className="flex-1 bg-white border border-primary-border/80 focus:border-primary rounded-xl px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all shadow-xs"
+          placeholder="Type a message"
+          aria-label="Chat message"
         />
         <button
           type="submit"
           disabled={!text.trim()}
           className="p-2.5 rounded-xl bg-primary text-white hover:bg-primary-hover disabled:opacity-40 transition-all cursor-pointer shadow-xs"
+          aria-label="Send message"
         >
           <SendIcon className="w-4 h-4" />
         </button>

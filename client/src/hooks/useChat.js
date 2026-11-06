@@ -20,7 +20,6 @@ export const useChat = (_roomId, user) => {
           minute: "2-digit",
         }),
       };
-      console.log(message);
       
       setMessages((prev) => [...prev, message]);
     },
