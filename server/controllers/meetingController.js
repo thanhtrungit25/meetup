@@ -8,7 +8,7 @@ const generateMeetingId = () => {
       () => chars[Math.floor(Math.random() * chars.length)],
     ).join("");
 
-  return `${seg(3)}-${seg(3)}-${seg(3)}`;
+  return `${segment(3)}-${segment(3)}-${segment(3)}`;
 };
 
 // Create meeting
@@ -29,7 +29,7 @@ export const createMeeting = async (req, res) => {
       SELECT COUNT(*) as count
       FROM meetings
       WHERE host_id = ${userId}
-      AND created_at >= date_trunc("month", NOW())
+      AND created_at >= date_trunc('month', NOW())
       `;
 
       const monthlyCount = parseInt(monthlyCountResult[0]?.count || "0");
@@ -80,7 +80,8 @@ export const createMeeting = async (req, res) => {
       },
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("create meeting failed:", error);
+    res.status(500).json({ error: "Failed to create meeting" });
   }
 };
 
@@ -121,7 +122,8 @@ export const getMeeting = async (req, res) => {
       },
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("fetch meeting failed:", error);
+    res.status(500).json({ error: "Failed to fetch meeting" });
   }
 };
 
@@ -134,7 +136,7 @@ export const getUserSessions = async (req, res) => {
     const meetings = await sql`
       SELECT DISTINCT m.id, m.meeting_id, m.title, m.status, m.created_at, m.ended_at, m.host_id, u.name as host_name, u.email as host_email
       FROM meetings m
-      JOIN users u ON m.host_id = m.id
+      JOIN users u ON m.host_id = u.id
       LEFT JOIN meeting_participants mp ON m.id = mp.meeting_id
       WHERE m.host_id = ${userId} OR mp.user_id = ${userId}
       ORDER BY m.created_at DESC
@@ -143,7 +145,7 @@ export const getUserSessions = async (req, res) => {
     const formattedMeetings = await Promise.all(
       meetings.map(async (m) => {
         const participants = await sql`
-          SELECT mp.*, u.email,
+          SELECT mp.*, u.email
           FROM meeting_participants mp
           LEFT JOIN users u ON mp.user_id = u.id
           WHERE mp.meeting_id = ${m.id}
@@ -158,7 +160,7 @@ export const getUserSessions = async (req, res) => {
 
         return {
           id: m.id,
-          meetingId: meeting_id,
+          meetingId: m.meeting_id,
           title: m.title,
           status: m.status,
           createdAt: m.created_at,
@@ -186,7 +188,8 @@ export const getUserSessions = async (req, res) => {
 
     res.json({ meetings: formattedMeetings });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("get user sessions failed:", error);
+    res.status(500).json({ error: "Failed to fetch user sessions" });
   }
 };
 
@@ -194,14 +197,16 @@ export const getUserSessions = async (req, res) => {
 export const getSessionDetails = async (req, res) => {
   try {
     const { id } = req.params;
+    const userId = req.user.id;
 
+    // Get meetings when the user is host of meeting
     const meetings = await sql`
       SELECT m.*,
         u.id as host_user_id,
         u.name as host_name,
         u.email as host_email
       FROM meetings m
-      JOIN users u ON m.host_id = m.id
+      JOIN users u ON m.host_id = u.id
       WHERE m.meeting_id = ${id}
     `;
 
@@ -210,6 +215,17 @@ export const getSessionDetails = async (req, res) => {
     }
 
     const m = meetings[0];
+
+    // Check if user access is not host and he must be membership
+    if (m.host_id !== userId) {
+      const membership = await sql`
+        SELECT 1 FROM meeting_participants
+        WHERE meeting_id = ${m.id} AND user_id = ${userId} LIMIT 1
+      `;
+      if (membership.length === 0) {
+        return res.status(404).json({ error: "Session details not found" });
+      }
+    }
 
     const participants = await sql`
       SELECT mp.*, u.email
@@ -253,7 +269,8 @@ export const getSessionDetails = async (req, res) => {
 
     res.json({ meeting: formattedMeeting });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("fetch session details failed:", error);
+    res.status(500).json({ error: "Failed to fetch session details" });
   }
 };
 
@@ -268,7 +285,7 @@ export const getMeetingStats = async (req, res) => {
       SELECT COUNT(*) as count
       FROM meetings
       WHERE host_id = ${userId}
-        AND created_at >= date_trunc("month", NOW())
+        AND created_at >= date_trunc('month', NOW())
     `;
     const monthlyCount = parseInt(monthlyCountResult[0]?.count || "0", 10);
     const monthlyLimit = plan === "premium" ? null : 30;
@@ -280,6 +297,7 @@ export const getMeetingStats = async (req, res) => {
       maxParticipants: plan === "premium" ? 100 : 10,
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("fetch meeting stats failed:", error);
+    res.status(500).json({ error: "Failed to fetch meeting stats" });
   }
 };
