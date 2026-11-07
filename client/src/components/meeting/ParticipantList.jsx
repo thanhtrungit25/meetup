@@ -34,6 +34,7 @@ const ParticipantList = ({
         <button
           onClick={onClose}
           className="p-1.5 rounded-xl text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition-colors cursor-pointer"
+          aria-label="Close participants list"
         >
           <XIcon className="w-5 h-5" />
         </button>

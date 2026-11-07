@@ -69,7 +69,7 @@ const ControlBar = ({
               ? "bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-300 shadow-xs"
               : "bg-rose-50 hover:bg-rose-100 text-rose-600 border-rose-200 shadow-xs"
           }`}
-          title={audioEnabled ? "Muted Microphone" : "Unmute Microphone"}
+          title={audioEnabled ? "Mute Microphone" : "Unmute Microphone"}
         >
           {audioEnabled ? (
             <MicIcon className="w-5 h-5" />
@@ -116,10 +116,10 @@ const ControlBar = ({
         {/* Participants Toggle */}
         <button
           onClick={onToggleParticipants}
-          className={`p-3.5 rounded-2xl transition-all cursor-pointer border ${
+          className={`relative p-3.5 rounded-2xl transition-all cursor-pointer border ${
             isParticipantsOpen
               ? "bg-primary text-white border-primary shadow-md shadow-primary/20"
-              : "bg-slate-100 text-slate-800 hover:bg-slate-200 border-slate-300 shadow-xs relative"
+              : "bg-slate-100 text-slate-800 hover:bg-slate-200 border-slate-300 shadow-xs"
           }`}
           title="Toggle Participants List"
         >
