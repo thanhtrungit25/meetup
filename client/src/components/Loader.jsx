@@ -1,9 +1,16 @@
-import React from 'react'
+import React from "react";
+import { VideoIcon } from "lucide-react";
 
-const Footer = () => {
+const Loader = ({ text = "Loading..." }) => {
   return (
-    <div>Footer</div>
-  )
-}
+    <div className="fixed inset-0 flex flex-col items-center justify-center bg-slate-50 text-slate-900 z-50">
+      <div className="relative flex items-center justify-center">
+        <div className="w-16 h-16 rounded-full border-4 border-primary-light border-t-primary animate-spin" />
+        <VideoIcon className="h-6 w-6 text-primary absolute" />
+      </div>
+      <p className="mt-4 text-sm font-semibold text-slate-600 animate-pulse">{text}</p>
+    </div>
+  );
+};
 
-export default Footer
+export default Loader;

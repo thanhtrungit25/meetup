@@ -7,10 +7,12 @@ import {
   PlusIcon,
   ShieldCheckIcon,
 } from "lucide-react";
-import { dummyStats, dummyUser } from "../assets/asset";
+import { useUser } from "@clerk/react";
+import { dummyStats } from "../assets/asset";
 
 const Dashboard = () => {
-  const user = dummyUser;
+  const { user } = useUser();
+
   const userName = user.fullName;
   const userEmail = user.primaryEmailAddress.emailAddress;
   const navigate = useNavigate();
