@@ -5,11 +5,12 @@ import cookieParser from "cookie-parser";
 import { clerkMiddleware } from "@clerk/express";
 import { initDB } from "./config/db.js";
 import { handleClerkWebhook } from "./controllers/webhookController.js";
+import meetingRouter from "./routes/meetingRoutes.js";
 
 const app = express();
 
 // Connect to Neon & Initialize Tables
-initDB();
+await initDB();
 
 const allowOrigins = process.env.ORIGINS.split(",");
 app.use(cors({ origin: allowOrigins, credentials: true }));
@@ -20,6 +21,7 @@ app.use(express.json());
 app.use(clerkMiddleware());
 
 app.get("/", (req, res) => res.send("API is live!"));
+app.use("/api/meetings", meetingRouter);
 
 const port = process.env.PORT || 3000;
 

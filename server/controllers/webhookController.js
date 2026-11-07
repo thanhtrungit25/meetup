@@ -2,17 +2,33 @@ import { verifyWebhook } from "@clerk/express/webhooks";
 import { sql } from "../config/db.js";
 
 export const handleClerkWebhook = async (req, res) => {
+  let evt;
   try {
-    const evt = await verifyWebhook(req);
+    evt = await verifyWebhook(req);
+  } catch (error) {
+    console.error("Clerk webhook verification failed:", error.message || error);
+    return res.status(400).json({ error: "Webhook verification failed" });
+  }
 
+  try {
     const eventType = evt.type;
     const data = evt.data;
 
     switch (eventType) {
       case "user.created": {
         const userId = data.id;
-        const primaryEmail = data.email_addresses?.[0].email_address || "";
-        const name = `${data.first_name || "User"} ${data.last_name}`;
+        const primaryEmail = data.email_addresses?.find(
+          (e) => e.id === data.primary_email_address_id,
+        )?.email_address;
+        if (!primaryEmail) {
+          console.warn(
+            `Clerk user ${userId} has no primary email; skipping ${eventType}`,
+          );
+          break;
+        }
+
+        const name =
+          [data.first_name, data.last_name].filter(Boolean).join(" ") || "User";
         const image = data.image_url || "";
         const plan = "free";
 
@@ -38,8 +54,8 @@ export const handleClerkWebhook = async (req, res) => {
         await sql`
         INSERT INTO users (id, name, email, image)
         VALUES (${userId}, ${name}, ${primaryEmail}, ${image})
-          ON CONFLICT (email) DO UPDATE SET
-            id = EXCLUDED.id,
+          ON CONFLICT (id) DO UPDATE SET
+            email = EXCLUDED.email,
             name = EXCLUDED.name,
             image = EXCLUDED.image,
             updated_at = NOW()
@@ -60,11 +76,9 @@ export const handleClerkWebhook = async (req, res) => {
     }
     return res.status(200).json({ success: true, eventType });
   } catch (error) {
-    console.error("Error verifying clerk webhook:", error.message || error);
-    return res
-      .status(400)
-      .json({
-        error: "Webhook verification failed: " + (error.message || error),
-      });
+    console.error("Error processing clerk webhook:", error.message || error);
+    return res.status(400).json({
+      error: "Webhook processing failed",
+    });
   }
 };
