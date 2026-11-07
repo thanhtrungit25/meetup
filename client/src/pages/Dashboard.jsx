@@ -13,8 +13,8 @@ import { dummyStats } from "../assets/asset";
 const Dashboard = () => {
   const { user } = useUser();
 
-  const userName = user.fullName;
-  const userEmail = user.primaryEmailAddress.emailAddress;
+  const userName = user.fullName || user.firstName || "User";
+  const userEmail = user.primaryEmailAddress?.emailAddress;
   const navigate = useNavigate();
 
   const [isCreating, setIsCreating] = useState(false);

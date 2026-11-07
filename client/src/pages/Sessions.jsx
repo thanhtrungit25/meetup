@@ -59,6 +59,7 @@ const Sessions = () => {
 
       {/* Session Detail Modal */}
       <SessionDetailModal
+        key={selectedSession?.id ?? "closed"}
         session={selectedSession}
         onClose={() => setSelectedSession(null)}
       />
