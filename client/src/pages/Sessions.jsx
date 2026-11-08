@@ -1,25 +1,59 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 import { createSessionStorage, Link, useNavigate } from "react-router-dom";
 import { ArrowLeftIcon } from "lucide-react";
-import { dummySessions } from "../assets/asset";
+import { useAuth } from "@clerk/react";
+import api from "../config/api.js";
+
+import Loader from "../components/Loader.jsx";
 import EmptySession from "../components/sessions/EmptySession";
 import SessionCard from "../components/sessions/SessionCard";
 import SessionDetailModal from "../components/sessions/SessionDetailModal";
 
 const Sessions = () => {
-  const [sessions] = useState(dummySessions);
+  const [sessions, setSessions] = useState([]);
   const [selectedSession, setSelectedSession] = useState(null);
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
 
-  const openSessionDetails = (sessionId) => {
-    const session = sessions.find(
-      (s) => s.id === sessionId || s.meetingId === sessionId,
-    );
+  const { isLoaded, isSignedIn, getToken } = useAuth();
 
-    if (session) {
-      setSelectedSession(session);
+  useEffect(() => {
+    const fetchSessions = async (params) => {
+      if (!isLoaded || !isSignedIn) return;
+
+      try {
+        const token = await getToken();
+        if (!token) return;
+        const res = await api.get("/api/meetings/sessions", {
+          headers: `Bearer ${token}`,
+        });
+        setSessions(res.data.meetings || []);
+      } catch {
+        toast.error("Failed to load meeting sessions");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchSessions();
+  }, [isLoaded, isSignedIn, getToken]);
+
+  const openSessionDetails = async (sessionId) => {
+    try {
+      const token = await getToken();
+      if (!token) return;
+      const res = await api.get(`/api/meetings/sessions/${sessionId}`, {
+        headers: `Bearer ${token}`,
+      });
+      setSelectedSession(res.data.meeting);
+    } catch {
+      toast.error("Could not fetch session details");
     }
   };
+
+  if (loading) {
+    return <Loader text="Loading meeting history..." />;
+  }
 
   return (
     <div className="flex-1 max-w-7xl w-full mx-auto p-6 md:p-12">

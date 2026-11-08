@@ -35,11 +35,11 @@ export function setupSocketIO(io) {
           const isHost =
             meeting?.host_id &&
             user?.id &&
-            meeting.host_id.toString() === user.id.toString();
+            meeting.host_id.toString() === user?.id.toString();
 
           currentUser = {
             socketId: socket.id,
-            userId: user.id,
+            userId: user?.id,
             userName: user?.name || "Anonymous",
             isHost,
             audioEnabled,
@@ -75,11 +75,11 @@ export function setupSocketIO(io) {
           // Save participant into DB if not already present
           const userId = user?.id || null;
           const existingParticipants = await sql`
-          SELECT id FROM meeting_participants
-          WHERE meeting_id = ${meeting.id}
-          AND (
-            (${user_id}::text IS NOT NULL AND user_id = ${userId}) OR name = ${currentUser.userName}
-          )
+            SELECT id FROM meeting_participants
+            WHERE meeting_id = ${meeting.id}
+            AND (
+              (${userId}::text IS NOT NULL AND user_id = ${userId}) OR (${userId}::text IS NULL AND name = ${currentUser.userName})
+            )
         `;
 
           if (existingParticipants.length === 0) {
@@ -115,7 +115,7 @@ export function setupSocketIO(io) {
     // accept the offer request and process the connection
     socket.on("answer", ({ targetSocketId, responseSocketId, sdp }) => {
       io.to(targetSocketId).emit("answer", {
-        responseSocketId,
+        responseSocketId: responseSocketId || socket.id,
         sdp,
       });
     });
@@ -126,7 +126,7 @@ export function setupSocketIO(io) {
       "ice-candidate",
       ({ targetSocketId, senderSocketId, candidate }) => {
         io.to(targetSocketId).emit("ice-candidate", {
-          senderSocketId,
+          senderSocketId: senderSocketId || socket.id,
           candidate,
         });
       },
@@ -181,13 +181,16 @@ export function setupSocketIO(io) {
 
     // Host explicitly ends meeting for all via End Meeting button
     socket.on("end-meeting", async ({ roomId }) => {
+      // currentUser.isHost must be derived from a verified identity
+      // if (!currentRoomId || !currentUser?.isHost) return;
+      // const roomId = currentRoomId;
       try {
         await sql`
           UPDATE meetings
           SET status = 'ended', ended_at = NOW()
           WHERE meeting_id = ${roomId}`;
 
-        io.on(roomId).emit("meeting-ended", {
+        io.in(roomId).emit("meeting-ended", {
           message: "The meeting has been ended by the host.",
         });
         rooms.delete(roomId);
@@ -202,7 +205,7 @@ export function setupSocketIO(io) {
         const roomParticipants = rooms.get(currentRoomId);
         roomParticipants.delete(socket.id);
 
-        if (roomParticipants.length === 0) {
+        if (roomParticipants.size === 0) {
           rooms.delete(currentRoomId);
         } else {
           // Notify remaining peers that a user disconnect

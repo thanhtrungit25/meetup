@@ -58,7 +58,7 @@ export const createMeeting = async (req, res) => {
 
     const [meeting] = await sql`
     INSERT INTO meetings(meeting_id, title, host_id, status)
-    VALUES (${meetingId}, ${title || "Instant Meeting"}, ${userId}, "active")
+    VALUES (${meetingId}, ${title || 'Instant Meeting'}, ${userId}, 'active')
     RETURNING id, meeting_id, title, host_id, status, created_at
     `;
 
