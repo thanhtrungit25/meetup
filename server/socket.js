@@ -35,11 +35,11 @@ export function setupSocketIO(io) {
           const isHost =
             meeting?.host_id &&
             user?.id &&
-            meeting.host_id.toString() === user.id.toString();
+            meeting.host_id.toString() === user?.id.toString();
 
           currentUser = {
             socketId: socket.id,
-            userId: user.id,
+            userId: user?.id,
             userName: user?.name || "Anonymous",
             isHost,
             audioEnabled,
@@ -75,11 +75,11 @@ export function setupSocketIO(io) {
           // Save participant into DB if not already present
           const userId = user?.id || null;
           const existingParticipants = await sql`
-          SELECT id FROM meeting_participants
-          WHERE meeting_id = ${meeting.id}
-          AND (
-            (${user_id}::text IS NOT NULL AND user_id = ${userId}) OR name = ${currentUser.userName}
-          )
+            SELECT id FROM meeting_participants
+            WHERE meeting_id = ${meeting.id}
+            AND (
+              (${userId}::text IS NOT NULL AND user_id = ${userId}) OR (${userId}::text IS NULL AND name = ${currentUser.userName})
+            )
         `;
 
           if (existingParticipants.length === 0) {
@@ -113,9 +113,9 @@ export function setupSocketIO(io) {
 
     // WebRTC Signaling: Answer
     // accept the offer request and process the connection
-    socket.on("answer", ({ targetSocketId, responseSocketId, sdp }) => {
+    socket.on("answer", ({ targetSocketId, responderSocketId, sdp }) => {
       io.to(targetSocketId).emit("answer", {
-        responseSocketId,
+        responderSocketId,
         sdp,
       });
     });
@@ -155,27 +155,70 @@ export function setupSocketIO(io) {
     });
 
     // Chat message event -> persist to DB & broadcast
-    socket.on("send-message", async ({ roomId, message }) => {
+    socket.on("send-message", async ({ roomId, message }, acknowledge) => {
+      if (!roomId || !message?.text?.trim()) {
+        acknowledge?.({ ok: false, error: "Message cannot be empty" });
+        return;
+      }
+
       try {
         const meetings =
-          await sql`SELECT id, status FROM meetings WHERE meeting_id = ${roomId}`;
+          await sql`SELECT id, status FROM meetings WHERE meeting_id = ${roomId} LIMIT 1`;
 
-        if (meetings.length > 0 && meetings[0]?.status !== "ended") {
-          const meetingId = meetings[0].id;
-          const senderId = message.senderId || null;
-
-          await sql`
-          INSERT INTO meeting_messages (meeting_id, sender_id, sender_name, text, timestamp)
-          VALUES (${meetingId}, ${senderId}, ${message.senderName || "Anonymous"}, ${message.text}, NOW())
-          `;
-
-          io.in(roomId).emit("receive-message", {
-            ...message,
-            senderSocketId: socket.id,
-          });
+        if (meetings.length === 0) {
+          acknowledge?.({ ok: false, error: "Meeting not found" });
+          return;
         }
+
+        const meeting = meetings[0];
+        if (meeting.status === "ended") {
+          acknowledge?.({ ok: false, error: "This meeting has ended" });
+          return;
+        }
+
+        // The sender is taken from authenticated/registered socket
+        // participant instead of trusting a client-supplied sender ID.
+        const senderId = currentUser?.userId || message.senderId || null;
+        const senderName = currentUser?.userName || meeting?.senderName || "Anonymous";
+        const text = message.text.trim();
+
+        // Ensure the socket is actually in this meeting before writing.
+        if (currentRoomId !== roomId || !currentUser) {
+          acknowledge?.({
+            ok: false,
+            error: "You are not connected to this meeting",
+          });
+          return;
+        }
+
+
+        const [savedMessage] = await sql`
+          INSERT INTO meeting_messages
+            (meeting_id, sender_id, sender_name, text, timestamp)
+          VALUES
+            (${meeting.id}, ${senderId}, ${senderName}, ${text}, NOW())
+          RETURNING id, sender_id, sender_name, text, timestamp
+        `;
+
+        const chatMessage = {
+          id: savedMessage.id,
+          roomId,
+          senderId: savedMessage.sender_id,
+          senderName: savedMessage.sender_name,
+          text: savedMessage.text,
+          timestamp: savedMessage.timestamp,
+          time: new Date(savedMessage.timestamp).toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+          senderSocketId: socket.id,
+        };
+
+        io.in(roomId).emit("receive-message", chatMessage);
+        acknowledge?.({ ok: true, message: chatMessage });
       } catch (error) {
         console.error("Error saving chat message to DB:", error);
+        acknowledge?.({ ok: false, message: "Failed to save chat message" });
       }
     });
 
@@ -187,7 +230,7 @@ export function setupSocketIO(io) {
           SET status = 'ended', ended_at = NOW()
           WHERE meeting_id = ${roomId}`;
 
-        io.on(roomId).emit("meeting-ended", {
+        io.to(roomId).emit("meeting-ended", {
           message: "The meeting has been ended by the host.",
         });
         rooms.delete(roomId);
@@ -202,7 +245,7 @@ export function setupSocketIO(io) {
         const roomParticipants = rooms.get(currentRoomId);
         roomParticipants.delete(socket.id);
 
-        if (roomParticipants.length === 0) {
+        if (roomParticipants.size === 0) {
           rooms.delete(currentRoomId);
         } else {
           // Notify remaining peers that a user disconnect

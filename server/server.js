@@ -34,9 +34,12 @@ const io = new Server(server, {
 setupSocketIO(io);
 
 // Centralized error hander
-app.use((err, _req, res, _next)=>{
+app.use((err, _req, res, _next) => {
   console.error(`[Error] ${err.message}`);
-  res.status(500).json({ error: err.message });
+  const status = err.status >= 400 && err.status < 500 ? err.status : 500;
+  res.status(status).json({
+    error: status === 500  ? "Internal Server Error" : err.message,
+  });
 });
 
 const port = process.env.PORT || 3000;

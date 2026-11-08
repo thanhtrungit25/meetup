@@ -36,11 +36,9 @@ export const handleClerkWebhook = async (req, res) => {
         INSERT INTO users (id, name, email, image, plan)
         VALUES (${userId}, ${name}, ${primaryEmail}, ${image}, ${plan})
           ON CONFLICT (id) DO UPDATE SET
-            id = EXCLUDED.id,
             email = EXCLUDED.email,
             name = EXCLUDED.name,
             image = EXCLUDED.image,
-            plan = EXCLUDED.plan,
             updated_at = NOW()
         `;
         break;
@@ -73,7 +71,7 @@ export const handleClerkWebhook = async (req, res) => {
       }
 
       default:
-        console.log(`Unhandleed Clerk webhook event type: ${eventType}`);
+        console.log(`Un handle Clerk webhook event type: ${eventType}`);
     }
     return res.status(200).json({ success: true, eventType });
   } catch (error) {

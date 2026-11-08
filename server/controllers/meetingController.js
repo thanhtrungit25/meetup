@@ -58,7 +58,7 @@ export const createMeeting = async (req, res) => {
 
     const [meeting] = await sql`
     INSERT INTO meetings(meeting_id, title, host_id, status)
-    VALUES (${meetingId}, ${title || "Instant Meeting"}, ${userId}, "active")
+    VALUES (${meetingId}, ${title || "Instant Meeting"}, ${userId}, 'active')
     RETURNING id, meeting_id, title, host_id, status, created_at
     `;
 
@@ -299,5 +299,68 @@ export const getMeetingStats = async (req, res) => {
   } catch (error) {
     console.error("fetch meeting stats failed:", error);
     res.status(500).json({ error: "Failed to fetch meeting stats" });
+  }
+};
+
+// Get chat meeting messages for a meeting room
+export const getMeetingMessages = async (req, res) => {
+  try {
+    const { meetingId } = req.params;
+    const userId = req.user.id;
+
+    const meetings = await sql`
+      SELECT id, meeting_id, host_id
+      FROM meetings
+      WHERE meeting_id = ${meetingId}
+      LIMIT 1
+    `;
+
+    if (meetings.length === 0) {
+      return res.status(404).json({ error: "Meeting not found" });
+    }
+
+    const meeting = meetings[0];
+
+    // Only host or participant can read the chat history
+    if (String(meeting.host_id) !== String(userId)) {
+      const membership = await sql`
+        SELECT 1
+        FROM meeting_participants
+        WHERE meeting_id = ${meeting.id} AND user_id = ${userId}
+        LIMIT 1
+      `;
+
+      if (membership.length === 0) {
+        return res
+          .status(403)
+          .json({ error: "You are not participant of this meeting" });
+      }
+    }
+
+    const messages = await sql`
+      SELECT id, sender_id, sender_name, text, timestamp
+      FROM meeting_messages
+      WHERE meeting_id = ${meeting.id}
+      ORDER BY timestamp ASC, id ASC
+    `;
+
+    return res.json({
+      messages: messages.map((msg) => ({
+        id: msg.id,
+        senderId: msg.sender_id,
+        senderName: msg.sender_name,
+        text: msg.text,
+        timestamp: msg.timestamp,
+        time: msg.timestamp
+          ? new Date(msg.timestamp).toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            })
+          : "",
+      })),
+    });
+  } catch (error) {
+    console.error("Get Meeting Messages Failed:", error);
+    return res.status(500).json({ error: "Failed to Fetch Meeting Messages" });
   }
 };
