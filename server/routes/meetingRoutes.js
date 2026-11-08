@@ -1,6 +1,6 @@
 import express from 'express'
 import { protect } from '../middleware/auth.js'
-import { createMeeting, getMeeting, getMeetingStats, getSessionDetails, getUserSessions } from '../controllers/meetingController.js'
+import { createMeeting, getMeeting, getMeetingMessages, getMeetingStats, getSessionDetails, getUserSessions } from '../controllers/meetingController.js'
 
 const meetingRouter = express.Router();
 
@@ -9,5 +9,6 @@ meetingRouter.get("/stats", protect, getMeetingStats);
 meetingRouter.get("/sessions", protect, getUserSessions);
 meetingRouter.get("/sessions/:id", protect, getSessionDetails);
 meetingRouter.get("/:meetingId", protect, getMeeting);
+meetingRouter.get("/:meetingId/messages", protect, getMeetingMessages);
 
 export default meetingRouter;

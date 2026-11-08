@@ -1,7 +1,6 @@
 import React, { useCallback, useState, useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import toast from "react-hot-toast";
-import { dummyMeetingDetails, dummyUser } from "../assets/asset";
 import api from "../config/api";
 import { useChat } from "../hooks/useChat";
 import { useWebRTC } from "../hooks/useWebRTC";
@@ -42,8 +41,6 @@ const Meeting = () => {
     user?.primaryEmailAddress?.emailAddress,
     user?.imageUrl,
   ]);
-
-  console.log("userData:", userData);
 
   // Fetch meeting details to verify valididy BEFORE enabling WEbRTC camera access
   useEffect(() => {
@@ -88,7 +85,7 @@ const Meeting = () => {
 
   // Initialize Chat
   const { isChatOpen, toggleChat, messages, sendMessage, unreadCount } =
-    useChat(meetingId, userData);
+    useChat(meetingId, userData, getToken);
 
   const hostId = meeting?.host?.id || meeting?.host;
   const isHost = Boolean(
@@ -106,7 +103,7 @@ const Meeting = () => {
     navigate("/dashboard");
   };
 
-  if (loadingMeeting) {
+  if (loadingMeeting || !meeting) {
     return <Loader title="Joining meeting room..." />;
   }
 
@@ -151,7 +148,7 @@ const Meeting = () => {
           localAudio={audioEnabled}
           localVideo={videoEnabled}
           remoteUsers={remoteUsers}
-          meetingHostId={dummyUser.id}
+          meetingHostId={hostId}
         />
       </div>
 

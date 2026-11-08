@@ -39,7 +39,6 @@ export const handleClerkWebhook = async (req, res) => {
             email = EXCLUDED.email,
             name = EXCLUDED.name,
             image = EXCLUDED.image,
-            plan = EXCLUDED.plan,
             updated_at = NOW()
         `;
         break;
