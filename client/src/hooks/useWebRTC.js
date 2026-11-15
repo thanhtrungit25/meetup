@@ -19,8 +19,9 @@ export const useWebRTC = (roomId, user, onMeetingEnded, enabled = true) => {
   const [audioEnabled, setAudioEnabled] = useState(true);
   const [videoEnabled, setVideoEnabled] = useState(true);
 
-  // Raise Hand
+  // Raise Hand & Reactions State
   const [isHandRaised, setIsHandRaised] = useState(false);
+  const [reactions, setReactions] = useState([]);
 
   const peersRef = useRef(new Map()); // socketId -> RTCPeerConnection
   const localStreamRef = useRef(null);
@@ -255,6 +256,14 @@ export const useWebRTC = (roomId, user, onMeetingEnded, enabled = true) => {
           toast(`${userName} raised their hand!`, { icon: "✋" });
         }
       })
+
+      // 11. Handle Floating Reaction
+      socket.on("receive-reaction", (reactionData) => {
+        setReactions((prev) => [...prev, reactionData]);
+        setTimeout(() => {
+          setReactions((prev) => prev.filter((r) => r.id !== reactionData.id));
+        }, 4000)
+      });
     };
 
     startSession();
@@ -283,6 +292,7 @@ export const useWebRTC = (roomId, user, onMeetingEnded, enabled = true) => {
       socket.off("user-left");
       socket.off("meeting-ended");
       socket.off("user-raised-hand");
+      socket.off("receive-reaction");
 
       socket.disconnect();
     };
@@ -333,6 +343,15 @@ export const useWebRTC = (roomId, user, onMeetingEnded, enabled = true) => {
     });
   };
 
+  // Floating Reactions
+  const sendReaction = (emoji) => {
+    socket.emit("send-reaction", {
+      roomId,
+      emoji,
+      userName: user?.fullName || user?.name || "Participant",
+    });
+  }
+
   // End meeting for everyone (Host action)
   const endMeeting = useCallback(() => {
     if (roomId) {
@@ -346,9 +365,11 @@ export const useWebRTC = (roomId, user, onMeetingEnded, enabled = true) => {
     audioEnabled,
     videoEnabled,
     isHandRaised,
+    reactions,
     toggleAudio,
     toggleVideo,
     toggleRaiseHand,
+    sendReaction,
     endMeeting,
   };
 };
