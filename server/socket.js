@@ -47,6 +47,7 @@ export function setupSocketIO(io) {
             isHost,
             audioEnabled,
             videoEnabled,
+            isHandRaised: false,
           };
 
           if (!rooms.has(roomId)) {
@@ -229,6 +230,25 @@ export function setupSocketIO(io) {
     socket.on("notes-update", ({ roomId, content, updatedBy }) => {
       rooms[roomId] = content;
       socket.to(roomId).emit("notes-updated", { content, updatedBy });
+    });
+
+    // Raise hand
+    socket.on("raise-hand", ({ roomId, userId, userName, isHandRaised }) => {
+      if (rooms.has(roomId)) {
+        const roomParticipants = rooms.get(roomId)
+        // Get existing participants in the room
+        const existingUsers = Array.from(roomParticipants.values());
+        const u = existingUsers.find((u) => u.socketId === socket.id);
+        if (u) {
+          u.isHandRaised = isHandRaised;
+        }
+      }
+      socket.to(roomId).emit("user-raised-hand", {
+        socketId: socket.id,
+        userId,
+        userName,
+        isHandRaised,
+      });
     });
 
     // Host explicitly ends meeting for all via End Meeting button
