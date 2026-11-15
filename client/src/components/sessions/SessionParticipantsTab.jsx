@@ -30,11 +30,11 @@ const SessionParticipantsTab = ({ participants = [], host }) => {
           >
             <div className="flex items-center gap-3">
               <div className="h-9 w-9 rounded-full bg-cyan-50 border-cyan-200 text-primary font-bold flex items-center justify-center text-sm">
-                {p.name ? p.name.charAt(0).toUpperCase() : "?"}
+                {p.user?.name ? p.user.name.charAt(0).toUpperCase() : "?"}
               </div>
               <div>
                 <span className="text-sm font-semibold text-slate-800 flex items-center gap-1.5">
-                  {p.name}
+                  {p.user?.name}
                   {isHost && (
                     <CrownIcon className="w-3.5 h-3.5 text-amber-500" />
                   )}

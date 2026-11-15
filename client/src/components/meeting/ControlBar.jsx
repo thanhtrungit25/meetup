@@ -3,6 +3,7 @@ import toast from "react-hot-toast";
 import {
   CheckIcon,
   CopyIcon,
+  FileText,
   MessagesSquareIcon,
   MicIcon,
   MicOffIcon,
@@ -20,8 +21,10 @@ const ControlBar = ({
   onToggleVideo,
   onToggleChat,
   onToggleParticipants,
+  onToggleNotes,
   isChatOpen,
   isParticipantsOpen,
+  isNotesOpen,
   unreadCount,
   participantCount,
   isHost,
@@ -127,6 +130,19 @@ const ControlBar = ({
           <span className="absolute -top-1 -right-1 bg-slate-200 text-slate-800 text-[10px] font-bold px-1.5 py-0.5 rounded-full border border-slate-300">
             {participantCount}
           </span>
+        </button>
+
+        {/* Shared Notes Drawer Trigger */}
+        <button
+          onClick={onToggleNotes}
+          className={`relative p-3.5 rounded-2xl transition-all cursor-pointer border ${
+            isNotesOpen
+              ? "bg-primary text-white border-primary shadow-md shadow-primary/20"
+              : "bg-slate-100 text-slate-800 hover:bg-slate-200 border-slate-300 shadow-xs"
+          }`}
+          title="Open Shared Meeting Notes"
+        >
+          <FileText className="h-5 w-5" />
         </button>
 
         {/* Leave / End Meeting */}
