@@ -251,6 +251,17 @@ export function setupSocketIO(io) {
       });
     });
 
+    // Reactions
+    socket.on("send-reaction", ({ roomId, emoji, userName }) => {
+      io.to(roomId).emit("receive-reaction", {
+        id: `react_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+        socketId: socket.id,
+        userName: userName || 'Someone',
+        emoji,
+        timestamp: Date.now()
+      });
+    });
+
     // Host explicitly ends meeting for all via End Meeting button
     socket.on("end-meeting", async ({ roomId }) => {
       try {

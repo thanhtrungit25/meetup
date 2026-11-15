@@ -11,6 +11,7 @@ import ParticipantList from "../components/meeting/ParticipantList";
 import ControlBar from "../components/meeting/ControlBar";
 import Loader from "../components/Loader";
 import MeetingNotesDrawer from "../components/meeting/MeetingNotesDrawer";
+import ReactionsOverlay from "../components/meeting/ReactionsOverlay";
 
 const Meeting = () => {
   const navigate = useNavigate();
@@ -81,9 +82,11 @@ const Meeting = () => {
     audioEnabled,
     videoEnabled,
     isHandRaised,
+    reactions,
     toggleAudio,
     toggleVideo,
     toggleRaiseHand,
+    sendReaction,
     endMeeting,
   } = useWebRTC(meetingId, userData, handleMeetingEnded);
 
@@ -126,6 +129,10 @@ const Meeting = () => {
 
       {/* Main Content Area (Video Grid + Side Panels) */}
       <div className="flex-1 flex overflow-hidden relative">
+
+        {/* Floating Emoji Reactions Overlay */}
+        <ReactionsOverlay reactions={reactions} />
+
         {/* Video Grid Center */}
         <VideoGrid
           localStream={localStream}
@@ -183,6 +190,7 @@ const Meeting = () => {
         unreadCount={unreadCount}
         participantCount={1 + remoteUsers.length}
         isHost={isHost}
+        onSendReaction={sendReaction}
         onLeave={handleLeave}
         onEndMeeting={handleEndMeeting}
       />

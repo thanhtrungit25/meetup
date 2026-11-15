@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import {
   CheckIcon,
@@ -9,10 +9,13 @@ import {
   MicIcon,
   MicOffIcon,
   PhoneOffIcon,
+  Smile,
   UsersIcon,
   VideoIcon,
   VideoOff,
 } from "lucide-react";
+
+const REACTION_EMOJIS = ['🎉', '❤️', '👍', '😂', '👏', '🔥', '🚀', '💯'];
 
 const ControlBar = ({
   roomId,
@@ -31,10 +34,27 @@ const ControlBar = ({
   unreadCount,
   participantCount,
   isHost,
+  onSendReaction,
   onLeave,
   onEndMeeting,
 }) => {
+  const reactionPickerRef = useRef(null);
   const [copied, setCopied] = useState(false);
+  const [isReactionPickerOpen, setIsReactionPickerOpen] = useState(false);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (reactionPickerRef.current && !reactionPickerRef.current.contains(e.target)) {
+        setIsReactionPickerOpen(false);
+      }
+    }
+
+    if (isReactionPickerOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isReactionPickerOpen]);
 
   const copyMeetingId = () => {
     navigator.clipboard.writeText(window.location.href);
@@ -44,6 +64,13 @@ const ControlBar = ({
       setCopied(false);
     }, 2000);
   };
+
+  const handleEmojiClick = (emoji) => {
+    if (onSendReaction) {
+      onSendReaction(emoji);
+    }
+    setIsReactionPickerOpen(false);
+  }
 
   return (
     <footer className="w-full bg-white/90 backdrop-blur-md border-t border-slate-200/80 px-6 py-4 flex items-center justify-between z-40 shadow-lg shadow-slate-200/50">
@@ -160,6 +187,36 @@ const ControlBar = ({
         >
           <Hand className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
         </button>
+
+        {/* Live Emoji Reactions Popover */}
+        <div className="relative shrink-0" ref={reactionPickerRef}>
+          <button
+            onClick={() => setIsReactionPickerOpen(!isReactionPickerOpen)}
+            className={`p-2.5 sm:p-3 rounded-2xl transition-all border cursor-pointer shrink-0 ${
+              isReactionPickerOpen
+                ? "bg-blue-50 border-blue-200 text-blue-600"
+                : "bg-slate-100 hover:bg-slate-200 border-slate-200 text-slate-700"
+            }`}
+            title="Reactions"
+          >
+            <Smile className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
+          </button>
+
+          {isReactionPickerOpen && (
+            <div className="absolute bottom-14 left-1/2 -translate-x-1/2 bg-white/95 backdrop-blur-xl p-2 flex items-center gap-1.5 border border-slate-200 rounded-2xl z-50 animate-in fade-in zoom-in-95 duration-150">
+              {REACTION_EMOJIS.map((emoji) => (
+                <button
+                  key={emoji}
+                  onClick={() => handleEmojiClick(emoji)}
+                  className="p-2 hover:bg-slate-100 rounded-xl text-xl hover:scale-125 transition-transform cursor-pointer"
+                >
+                  {emoji}
+                </button>
+              ))}
+            </div>
+          )}
+
+        </div>
 
         {/* Leave / End Meeting */}
         {isHost ? (
