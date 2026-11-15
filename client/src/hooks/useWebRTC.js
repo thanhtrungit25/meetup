@@ -15,9 +15,12 @@ const ICE_SERVERS = {
 
 export const useWebRTC = (roomId, user, onMeetingEnded, enabled = true) => {
   const [localStream, setLocalStream] = useState(null);
-  const [remoteUsers, setRemoteUsers] = useState([]); // Array of { socketId, userId, userName, stream, audioEnabled, videoEnabled }
+  const [remoteUsers, setRemoteUsers] = useState([]); // Array of { socketId, userId, userName, stream, audioEnabled, videoEnabled, isHandRaised }
   const [audioEnabled, setAudioEnabled] = useState(true);
   const [videoEnabled, setVideoEnabled] = useState(true);
+
+  // Raise Hand
+  const [isHandRaised, setIsHandRaised] = useState(false);
 
   const peersRef = useRef(new Map()); // socketId -> RTCPeerConnection
   const localStreamRef = useRef(null);
@@ -101,6 +104,7 @@ export const useWebRTC = (roomId, user, onMeetingEnded, enabled = true) => {
               stream: remoteStream,
               audioEnabled: targetUser?.audioEnabled ?? true,
               videoEnabled: targetUser?.videoEnabled ?? true,
+              isHandRaised: targetUser?.isHandRaised ?? false,
             },
           ];
         }
@@ -243,6 +247,14 @@ export const useWebRTC = (roomId, user, onMeetingEnded, enabled = true) => {
           onMeetingEnded(message);
         }
       });
+
+      // 10. Handle Raise Hand from peer
+      socket.on("user-raised-hand", ({ socketId, userName, isHandRaised }) => {
+        setRemoteUsers((prev) => prev.map((u) => (u.socketId === socketId ? { ...u, isHandRaised } : u)));
+        if (isHandRaised) {
+          toast(`${userName} raised their hand!`, { icon: "✋" });
+        }
+      })
     };
 
     startSession();
@@ -270,6 +282,7 @@ export const useWebRTC = (roomId, user, onMeetingEnded, enabled = true) => {
       socket.off("user-toggled-video");
       socket.off("user-left");
       socket.off("meeting-ended");
+      socket.off("user-raised-hand");
 
       socket.disconnect();
     };
@@ -308,6 +321,18 @@ export const useWebRTC = (roomId, user, onMeetingEnded, enabled = true) => {
     }
   };
 
+  // Toggle Raise Hand
+  const toggleRaiseHand = () => {
+    const nextState = !isHandRaised;
+    setIsHandRaised(nextState);
+    socket.emit("raise-hand", {
+      roomId,
+      userId: user?.id,
+      userName: user?.fullName || user?.name || "Participant",
+      isHandRaised: nextState,
+    });
+  };
+
   // End meeting for everyone (Host action)
   const endMeeting = useCallback(() => {
     if (roomId) {
@@ -320,8 +345,10 @@ export const useWebRTC = (roomId, user, onMeetingEnded, enabled = true) => {
     remoteUsers,
     audioEnabled,
     videoEnabled,
+    isHandRaised,
     toggleAudio,
     toggleVideo,
+    toggleRaiseHand,
     endMeeting,
   };
 };

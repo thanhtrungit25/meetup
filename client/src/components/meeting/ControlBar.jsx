@@ -4,6 +4,7 @@ import {
   CheckIcon,
   CopyIcon,
   FileText,
+  Hand,
   MessagesSquareIcon,
   MicIcon,
   MicOffIcon,
@@ -17,11 +18,13 @@ const ControlBar = ({
   roomId,
   audioEnabled,
   videoEnabled,
+  isHandRaised,
   onToggleAudio,
   onToggleVideo,
   onToggleChat,
   onToggleParticipants,
   onToggleNotes,
+  onToggleRaiseHand,
   isChatOpen,
   isParticipantsOpen,
   isNotesOpen,
@@ -143,6 +146,19 @@ const ControlBar = ({
           title="Open Shared Meeting Notes"
         >
           <FileText className="h-5 w-5" />
+        </button>
+
+        {/* Raise Hand Toggle */}
+        <button
+          onClick={onToggleRaiseHand}
+          className={`p-2.5 sm:p-3 rounded-2xl transition-all border cursor-pointer shrink-0 ${
+            isHandRaised
+              ? 'bg-amber-500 border-amber-600 text-white shadow-md shadow-amber-500/25 ring-2 ring-amber-300'
+              : 'bg-slate-100 hover:bg-slate-200 border-slate-200 text-slate-700'
+          }`}
+          title={isHandRaised ? "Lower Hand" : "Raise Hand"}
+        >
+          <Hand className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
         </button>
 
         {/* Leave / End Meeting */}

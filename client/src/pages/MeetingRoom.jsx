@@ -80,8 +80,10 @@ const Meeting = () => {
     remoteUsers,
     audioEnabled,
     videoEnabled,
+    isHandRaised,
     toggleAudio,
     toggleVideo,
+    toggleRaiseHand,
     endMeeting,
   } = useWebRTC(meetingId, userData, handleMeetingEnded);
 
@@ -131,6 +133,7 @@ const Meeting = () => {
           remoteUsers={remoteUsers}
           audioEnabled={audioEnabled}
           videoEnabled={videoEnabled}
+          isLocalHandRaised={isHandRaised}
         />
 
         {/* In-Meeting Chat Drawer */}
@@ -167,11 +170,13 @@ const Meeting = () => {
         roomId={meetingId || meeting.meetingId}
         audioEnabled={audioEnabled}
         videoEnabled={videoEnabled}
+        isHandRaised={isHandRaised}
         onToggleAudio={toggleAudio}
         onToggleVideo={toggleVideo}
         onToggleChat={toggleChat}
         onToggleParticipants={() => setIsParticipantsOpen((prev) => !prev)}
         onToggleNotes={() => setIsNotesOpen((prev) => !prev)}
+        onToggleRaiseHand={toggleRaiseHand}
         isChatOpen={isChatOpen}
         isParticipantsOpen={isParticipantsOpen}
         isNotesOpen={isNotesOpen}

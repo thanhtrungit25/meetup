@@ -7,12 +7,13 @@ const VideoGrid = ({
   remoteUsers,
   audioEnabled,
   videoEnabled,
+  isLocalHandRaised,
 }) => {
   const totalParticipants = 1 + remoteUsers.length;
 
   // Determine grid columns dynamically
   const getGridClass = () => {
-    if (totalParticipants === 1) return "grid-cols-1 max-w-4xl";
+    if (totalParticipants === 1) return "grid-cols-1 max-w-2xl";
     if (totalParticipants === 2) return "grid-cols-1 md:grid-cols-2 max-w-5xl";
     if (totalParticipants <= 4) return "grid-cols-1 md:grid-cols-2 max-w-5xl";
     if (totalParticipants <= 6)
@@ -32,6 +33,7 @@ const VideoGrid = ({
           isLocal={true}
           audioEnabled={audioEnabled}
           videoEnabled={videoEnabled}
+          isHandRaised={isLocalHandRaised}
         />
 
         {/* Remote Users Titles */}
@@ -43,6 +45,7 @@ const VideoGrid = ({
             isLocal={false}      
             audioEnabled={remote.audioEnabled}
             videoEnabled={remote.videoEnabled}
+            isHandRaised={remote.isHandRaised}
           />
         ))}
       </div>
