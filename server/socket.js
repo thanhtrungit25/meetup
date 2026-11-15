@@ -3,6 +3,9 @@ import { sql } from "./config/db.js";
 // Socket.IO Room State: roomId -> Map<socketId, participantObject>
 const rooms = new Map();
 
+// Shared meeting notes per room: { roomId: string }
+const roomNotes = {};
+
 export function setupSocketIO(io) {
   io.on("connection", (socket) => {
     let currentRoomId = null;
@@ -220,6 +223,12 @@ export function setupSocketIO(io) {
         console.error("Error saving chat message to DB:", error);
         acknowledge?.({ ok: false, message: "Failed to save chat message" });
       }
+    });
+
+    // Live shared meeting notes
+    socket.on("notes-update", ({ roomId, content, updatedBy }) => {
+      rooms[roomId] = content;
+      socket.to(roomId).emit("notes-updated", { content, updatedBy });
     });
 
     // Host explicitly ends meeting for all via End Meeting button

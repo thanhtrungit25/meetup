@@ -14,7 +14,8 @@ const generateMeetingId = () => {
 // Create meeting
 export const createMeeting = async (req, res) => {
   try {
-    const { title } = req.body;
+    const { title, description } = req.body;
+        
     const userId = req.user.id;
 
     // Fetch user details and plan
@@ -57,9 +58,9 @@ export const createMeeting = async (req, res) => {
     }
 
     const [meeting] = await sql`
-    INSERT INTO meetings(meeting_id, title, host_id, status)
-    VALUES (${meetingId}, ${title || "Instant Meeting"}, ${userId}, 'active')
-    RETURNING id, meeting_id, title, host_id, status, created_at
+    INSERT INTO meetings(meeting_id, title, description, host_id, status)
+    VALUES (${meetingId}, ${title || "Instant Meeting"}, ${description} || null, ${userId}, 'active')
+    RETURNING id, meeting_id, title, description, host_id, status, created_at
     `;
 
     const hostName = users[0]?.name || "Host";
@@ -75,6 +76,7 @@ export const createMeeting = async (req, res) => {
         id: meeting.id,
         meetingId: meeting.meeting_id,
         title: meeting.title,
+        description: meeting.description,
         host: meeting.host_id,
         status: meeting.status,
       },
@@ -228,7 +230,7 @@ export const getSessionDetails = async (req, res) => {
     }
 
     const participants = await sql`
-      SELECT mp.*, u.email
+      SELECT mp.*, u.email, u.name
       FROM meeting_participants mp
       LEFT JOIN users u ON mp.user_id = u.id
       WHERE mp.meeting_id = ${m.id}
@@ -254,7 +256,7 @@ export const getSessionDetails = async (req, res) => {
         email: m.host_email,
       },
       participants: participants.map((p) => ({
-        user: p.user_id ? { id: p.user_id, email: p.email } : null,
+        user: p.user_id ? { id: p.user_id, email: p.email, name: p.name } : null,
         joinedAt: p.joined_at,
         leftAt: p.left_at,
       })),

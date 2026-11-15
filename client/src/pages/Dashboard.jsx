@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { useAuth, useUser } from "@clerk/react";
 import api from "../config/api.js";
+import NewMeetingModal from "../components/meeting/NewMeetingModal.jsx";
 
 const Dashboard = () => {
   const { user } = useUser();
@@ -18,7 +19,7 @@ const Dashboard = () => {
   const userEmail = user.primaryEmailAddress?.emailAddress;
   const navigate = useNavigate();
 
-  const [isCreating, setIsCreating] = useState(false);
+  const [isNewMeetingOpen, setIsNewMeetingOpen] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [stats, setStats] = useState(null);
 
@@ -46,27 +47,6 @@ const Dashboard = () => {
     }
     fetchStats();
   }, [isLoaded, isSignedIn, getToken]);
-
-  const handleCreateMetting = async () => {
-    if (!isLoaded || !isSignedIn) return;
-
-    setIsCreating(true);
-    
-    try {
-      const token = await getToken();
-      const res = await api.post("/api/meetings", { title: `${userName}'s Meeting`}, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-
-      const meetingId = res.data.meeting.meetingId;
-      toast.success("Meeting created!");
-      navigate(`/meeting/${meetingId}`);
-    } catch (error) {
-      toast.error(error.response?.data?.error || error.message);
-    } finally {
-      setIsCreating(false);
-    }
-  };
 
   const handleJoinMetting = async (e) => {
     e.preventDefault();
@@ -107,13 +87,14 @@ const Dashboard = () => {
             </p>
 
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-2">
+              
+              {/* Blue + New Meeting Button */}
               <button
-                onClick={handleCreateMetting}
-                disabled={isCreating}
+                onClick={() => setIsNewMeetingOpen(true)}
                 className="bg-primary text-white px-6 py-3.5 rounded-full flex items-center justify-center gap-2.5 hover:bg-primary-hover font-medium shadow-md shadow-primary/20 transition-all cursor-pointer disabled:opacity-50"
               >
                 <PlusIcon className="w-5 h-5" />
-                <span>{isCreating ? "Creating..." : "New Meeting"}</span>
+                <span>New Meeting</span>
               </button>
 
               <form
@@ -199,6 +180,13 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
+
+      {/* New Meeting Title/Description Modal */}
+      <NewMeetingModal
+        isOpen={isNewMeetingOpen}
+        onClose={() => setIsNewMeetingOpen(false)}
+        user={user}
+      />
     </div>
   );
 };

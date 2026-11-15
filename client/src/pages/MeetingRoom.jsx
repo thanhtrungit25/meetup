@@ -10,6 +10,7 @@ import ChatPanel from "../components/meeting/ChatPanel";
 import ParticipantList from "../components/meeting/ParticipantList";
 import ControlBar from "../components/meeting/ControlBar";
 import Loader from "../components/Loader";
+import MeetingNotesDrawer from "../components/meeting/MeetingNotesDrawer";
 
 const Meeting = () => {
   const navigate = useNavigate();
@@ -21,6 +22,7 @@ const Meeting = () => {
   const [meeting, setMeeting] = useState(null);
   const [loadingMeeting, setLoadingMeeting] = useState(true);
   const [isParticipantsOpen, setIsParticipantsOpen] = useState(false);
+  const [isNotesOpen, setIsNotesOpen] = useState(false);
 
   const userData = useMemo(() => {
     if (!user) return null;
@@ -150,6 +152,14 @@ const Meeting = () => {
           remoteUsers={remoteUsers}
           meetingHostId={hostId}
         />
+
+        {/* Shared Notes Drawer */}
+        <MeetingNotesDrawer
+          isOpen={isNotesOpen}
+          onClose={() => setIsNotesOpen(false)}
+          roomId={meetingId || meeting.meetingId}
+          currentUser={userData.name}
+        />
       </div>
 
       {/* Bottom Floating Control Bar */}
@@ -161,8 +171,10 @@ const Meeting = () => {
         onToggleVideo={toggleVideo}
         onToggleChat={toggleChat}
         onToggleParticipants={() => setIsParticipantsOpen((prev) => !prev)}
+        onToggleNotes={() => setIsNotesOpen((prev) => !prev)}
         isChatOpen={isChatOpen}
         isParticipantsOpen={isParticipantsOpen}
+        isNotesOpen={isNotesOpen}
         unreadCount={unreadCount}
         participantCount={1 + remoteUsers.length}
         isHost={isHost}

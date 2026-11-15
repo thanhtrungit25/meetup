@@ -26,9 +26,12 @@ export async function initDB() {
                 id SERIAL PRIMARY KEY,
                 meeting_id VARCHAR(50) NOT NULL UNIQUE,
                 title VARCHAR(255) DEFAULT 'Instant Meeting',
+                description TEXT,
                 host_id VARCHAR(255) NOT NULL REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE,
                 status VARCHAR(20) DEFAULT 'active',
                 ended_at TIMESTAMPTZ,
+                scheduled_at TIMESTAMPTZ,
+                duration INT DEFAULT 30,
                 created_at TIMESTAMPTZ DEFAULT NOW(),
                 updated_at TIMESTAMPTZ DEFAULT NOW()
             );
