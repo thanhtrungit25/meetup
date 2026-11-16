@@ -271,6 +271,17 @@ export function setupSocketIO(io) {
       socket.to(roomId).emit("whiteboard-cleared");
     });
 
+    // Screen sharing
+    socket.on("toggle-screen-share", ({ roomId, isSharing }) => {
+      if (rooms.has(roomId) && rooms.get(roomId).has(socket.id)) {
+        rooms.get(roomId).get(socket.id).isScreenSharing = isSharing;
+      }
+      socket.to(roomId).emit("user-screen-share-toggled", {
+        socketId: socket.id,
+        isSharing,
+      });
+    });
+
     // Host explicitly ends meeting for all via End Meeting button
     socket.on("end-meeting", async ({ roomId }) => {
       try {

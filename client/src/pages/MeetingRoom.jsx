@@ -89,9 +89,11 @@ const Meeting = () => {
     videoEnabled,
     isHandRaised,
     reactions,
+    isScreenSharing,
     toggleAudio,
     toggleVideo,
     toggleRaiseHand,
+    toggleScreenShare,
     sendReaction,
     endMeeting,
   } = useWebRTC(meetingId, userData, handleMeetingEnded);
@@ -203,6 +205,7 @@ const Meeting = () => {
         audioEnabled={audioEnabled}
         videoEnabled={videoEnabled}
         isHandRaised={isHandRaised}
+        isScreenSharing={isScreenSharing}
         onToggleAudio={toggleAudio}
         onToggleVideo={toggleVideo}
         onToggleChat={toggleChat}
@@ -211,6 +214,7 @@ const Meeting = () => {
         onToggleRaiseHand={toggleRaiseHand}
         onOpenSettings={() => setIsSettingsOpen(true)}
         onOpenWhiteboard={() => setIsWhiteboardOpen(true)}
+        onToggleScreenShare={toggleScreenShare}
         isChatOpen={isChatOpen}
         isParticipantsOpen={isParticipantsOpen}
         isNotesOpen={isNotesOpen}
