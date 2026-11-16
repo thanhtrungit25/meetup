@@ -8,6 +8,7 @@ import { clerkMiddleware } from "@clerk/express";
 import { initDB } from "./config/db.js";
 import { handleClerkWebhook } from "./controllers/webhookController.js";
 import meetingRouter from "./routes/meetingRoutes.js";
+import uploadRouter from "./routes/uploadRoutes.js";
 import { setupSocketIO } from "./socket.js";
 
 const app = express();
@@ -26,6 +27,7 @@ app.use(clerkMiddleware());
 
 app.get("/", (req, res) => res.send("API is live!"));
 app.use("/api/meetings", meetingRouter);
+app.use("/api/upload", uploadRouter);
 
 const io = new Server(server, {
   cors: { origin: allowOrigins, credentials: true }

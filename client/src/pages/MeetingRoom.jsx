@@ -12,6 +12,7 @@ import ControlBar from "../components/meeting/ControlBar";
 import Loader from "../components/Loader";
 import MeetingNotesDrawer from "../components/meeting/MeetingNotesDrawer";
 import ReactionsOverlay from "../components/meeting/ReactionsOverlay";
+import SettingsModal, { VIRTUAL_BACKGROUNDS } from "../components/meeting/SettingsModal";
 
 const Meeting = () => {
   const navigate = useNavigate();
@@ -24,6 +25,9 @@ const Meeting = () => {
   const [loadingMeeting, setLoadingMeeting] = useState(true);
   const [isParticipantsOpen, setIsParticipantsOpen] = useState(false);
   const [isNotesOpen, setIsNotesOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [virtualBackground, setVirtualBackground] = useState(VIRTUAL_BACKGROUNDS[0]);
+  const [noiseSuppressionEnabled, setNoiseSuppressionEnabled] = useState(true);
 
   const userData = useMemo(() => {
     if (!user) return null;
@@ -141,6 +145,7 @@ const Meeting = () => {
           audioEnabled={audioEnabled}
           videoEnabled={videoEnabled}
           isLocalHandRaised={isHandRaised}
+          virtualBackground={virtualBackground}
         />
 
         {/* In-Meeting Chat Drawer */}
@@ -170,6 +175,17 @@ const Meeting = () => {
           roomId={meetingId || meeting.meetingId}
           currentUser={userData.name}
         />
+
+        {/* Audio & Video Quality Settings Modal */}
+        <SettingsModal
+          isOpen={isSettingsOpen}
+          onClose={() => setIsSettingsOpen(false)}
+          localStream={localStream}
+          virtualBackground={virtualBackground}
+          onSelectVirtualBackground={(bg) => setVirtualBackground(bg)}
+          noiseSupressionEnabled={noiseSuppressionEnabled}
+          onToggleNoiseSuppression={() => setNoiseSuppressionEnabled(prev => !prev)}
+        />
       </div>
 
       {/* Bottom Floating Control Bar */}
@@ -184,6 +200,7 @@ const Meeting = () => {
         onToggleParticipants={() => setIsParticipantsOpen((prev) => !prev)}
         onToggleNotes={() => setIsNotesOpen((prev) => !prev)}
         onToggleRaiseHand={toggleRaiseHand}
+        onOpenSettings={() => setIsSettingsOpen(true)}
         isChatOpen={isChatOpen}
         isParticipantsOpen={isParticipantsOpen}
         isNotesOpen={isNotesOpen}

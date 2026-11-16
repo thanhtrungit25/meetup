@@ -9,6 +9,7 @@ import {
   MicIcon,
   MicOffIcon,
   PhoneOffIcon,
+  Settings,
   Smile,
   UsersIcon,
   VideoIcon,
@@ -35,6 +36,7 @@ const ControlBar = ({
   participantCount,
   isHost,
   onSendReaction,
+  onOpenSettings,
   onLeave,
   onEndMeeting,
 }) => {
@@ -215,8 +217,16 @@ const ControlBar = ({
               ))}
             </div>
           )}
-
         </div>
+
+        {/* Settings Button */}
+        <button
+          onClick={onOpenSettings}
+          className="p-2.5 sm:p-3 rounded-2xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 transition-all cursor-pointer shrink-0"
+          title="Audio, Video & Quality Settings"
+        >
+          <Settings className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
+        </button>
 
         {/* Leave / End Meeting */}
         {isHost ? (
