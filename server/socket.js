@@ -262,6 +262,15 @@ export function setupSocketIO(io) {
       });
     });
 
+    // Collaborative whiteboard
+    socket.on("draw-line", ({ roomId, prevPoint, currentPoint, color, width, mode }) => {
+      socket.to(roomId).emit("draw-line", { prevPoint, currentPoint, color, width, mode });
+    });
+
+    socket.on("clear-whiteboard", ({ roomId }) => {
+      socket.to(roomId).emit("whiteboard-cleared");
+    });
+
     // Host explicitly ends meeting for all via End Meeting button
     socket.on("end-meeting", async ({ roomId }) => {
       try {
