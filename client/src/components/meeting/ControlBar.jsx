@@ -8,6 +8,7 @@ import {
   MessagesSquareIcon,
   MicIcon,
   MicOffIcon,
+  Monitor,
   Palette,
   PhoneOffIcon,
   Settings,
@@ -24,6 +25,7 @@ const ControlBar = ({
   audioEnabled,
   videoEnabled,
   isHandRaised,
+  isScreenSharing,
   onToggleAudio,
   onToggleVideo,
   onToggleChat,
@@ -39,6 +41,7 @@ const ControlBar = ({
   onSendReaction,
   onOpenWhiteboard,
   onOpenSettings,
+  onToggleScreenShare,
   onLeave,
   onEndMeeting,
 }) => {
@@ -130,6 +133,19 @@ const ControlBar = ({
           ) : (
             <VideoOff className="w-5 h-5" />
           )}
+        </button>
+
+        {/* Screen Share Toggle */}
+        <button
+          onClick={onToggleScreenShare}
+          className={`p-2.5 sm:p-3 rounded-2xl transition-all border cursor-pointer shrink-0 ${
+            isScreenSharing
+              ? 'bg-[#0055ff] border-blue-600 text-white shadow-md shadow-blue-500/25 ring-2 ring-blue-400/40'
+              : 'bg-slate-100 hover:bg-slate-200 border-slate-200 text-slate-700'
+          }`}
+          title={isScreenSharing ? "Stop Sharing Screen" : "Share Screen"}
+        >
+          <Monitor className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
         </button>
 
         {/* Chat Toggle */}

@@ -19,6 +19,10 @@ export const useWebRTC = (roomId, user, onMeetingEnded, enabled = true) => {
   const [audioEnabled, setAudioEnabled] = useState(true);
   const [videoEnabled, setVideoEnabled] = useState(true);
 
+  // Screen Sharing State
+  const [isScreenSharing, setIsScreenSharing] = useState(false);
+  const screenStreamRef = useRef(null);
+
   // Raise Hand & Reactions State
   const [isHandRaised, setIsHandRaised] = useState(false);
   const [reactions, setReactions] = useState([]);
@@ -53,6 +57,16 @@ export const useWebRTC = (roomId, user, onMeetingEnded, enabled = true) => {
         return null;
       }
     }
+  }, []);
+
+  // Swap video track across all active RTCPeerConnection sender tracks
+  const replaceTrackOnPeers = useCallback((newVideoTrack) => {
+    peersRef.current.forEach((peer) => {
+      const sender = peer.getSenders().find((s) => s.track && s.track.kind === "video");
+      if (sender && newVideoTrack) {
+        sender.replaceTrack(newVideoTrack).catch((err) => console.error("Error replacing track:", err));
+      }
+    });
   }, []);
 
   // Create RTCPeerConnection for a target socket
@@ -106,6 +120,7 @@ export const useWebRTC = (roomId, user, onMeetingEnded, enabled = true) => {
               audioEnabled: targetUser?.audioEnabled ?? true,
               videoEnabled: targetUser?.videoEnabled ?? true,
               isHandRaised: targetUser?.isHandRaised ?? false,
+              isScreenSharing: targetUser?.isScreenSharing ?? false,
             },
           ];
         }
@@ -264,6 +279,11 @@ export const useWebRTC = (roomId, user, onMeetingEnded, enabled = true) => {
           setReactions((prev) => prev.filter((r) => r.id !== reactionData.id));
         }, 4000)
       });
+
+      // 12. Handle screen share from peer
+      socket.on("user-screen-share-toggled", ({ socketId, isSharing }) => {
+        setRemoteUsers((prev) => prev.map((u) => (u.socketId === socketId ? { ...u, isScreenSharing: isSharing } : u)));
+      });
     };
 
     startSession();
@@ -290,9 +310,10 @@ export const useWebRTC = (roomId, user, onMeetingEnded, enabled = true) => {
       socket.off("user-toggled-audio");
       socket.off("user-toggled-video");
       socket.off("user-left");
-      socket.off("meeting-ended");
       socket.off("user-raised-hand");
       socket.off("receive-reaction");
+      socket.off("user-screen-share-toggled");
+      socket.off("meeting-ended");
 
       socket.disconnect();
     };
@@ -352,6 +373,44 @@ export const useWebRTC = (roomId, user, onMeetingEnded, enabled = true) => {
     });
   }
 
+  // Toggle Share Screen
+  const toggleScreenShare = useCallback(async () => {
+    if (!isScreenSharing) {
+      try {
+        const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+        screenStreamRef.current = screenStream;
+        setIsScreenSharing(true);
+  
+        const screenVideoTrack = screenStream.getVideoTracks()[0];
+        replaceTrackOnPeers(screenVideoTrack);
+        socket.emit("toggle-screen-share", { roomId, isSharing: true });
+  
+        screenVideoTrack.onended = () => {
+          setIsScreenSharing(false);
+          screenStreamRef.current = null;
+          if (localStreamRef.current) {
+            const originalVideoTrack = localStreamRef.current.getVideoTracks()[0];
+            replaceTrackOnPeers(originalVideoTrack);
+          }
+          socket.emit("toggle-screen-share", { roomId, isSharing: false });
+        }
+      } catch (err) {
+        console.warn("Screen share cancelled:", err.message);
+      }
+    } else {
+      if (screenStreamRef.current) {
+        screenStreamRef.current.getTracks().forEach((track) => track.stop());
+        screenStreamRef.current = null;
+      }
+      setIsScreenSharing(false);
+      if (localStreamRef.current) {
+        const originalVideoTrack = localStreamRef.current.getVideoTracks()[0];
+        replaceTrackOnPeers(originalVideoTrack);
+      }
+      socket.emit("toggle-screen-share", { roomId, isSharing: false });
+    }
+  }, [isScreenSharing, replaceTrackOnPeers, roomId]);
+
   // End meeting for everyone (Host action)
   const endMeeting = useCallback(() => {
     if (roomId) {
@@ -366,10 +425,12 @@ export const useWebRTC = (roomId, user, onMeetingEnded, enabled = true) => {
     videoEnabled,
     isHandRaised,
     reactions,
+    isScreenSharing,
     toggleAudio,
     toggleVideo,
     toggleRaiseHand,
     sendReaction,
+    toggleScreenShare,
     endMeeting,
   };
 };
