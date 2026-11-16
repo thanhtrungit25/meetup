@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import {
   CheckIcon,
+  Circle,
   CopyIcon,
   FileText,
   Hand,
@@ -13,6 +14,7 @@ import {
   PhoneOffIcon,
   Settings,
   Smile,
+  Square,
   UsersIcon,
   VideoIcon,
   VideoOff,
@@ -26,6 +28,8 @@ const ControlBar = ({
   videoEnabled,
   isHandRaised,
   isScreenSharing,
+  isRecording,
+  recordingTime,
   onToggleAudio,
   onToggleVideo,
   onToggleChat,
@@ -42,6 +46,7 @@ const ControlBar = ({
   onOpenWhiteboard,
   onOpenSettings,
   onToggleScreenShare,
+  onToggleRecording,
   onLeave,
   onEndMeeting,
 }) => {
@@ -97,6 +102,14 @@ const ControlBar = ({
           )}
           <span>{copied ? "Copied" : "Copy Link"}</span>
         </button>
+
+        {/* Live Recording Indicator Pill */}
+        {isRecording && (
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-rose-50 border border-rose-200 text-rose-600 text-[10px] font-bold animate-pulse">
+            <span className="w-2 h-2 rounded-full bg-rose-600"></span>
+            <span>REC {recordingTime}</span>
+          </div>
+        )}
       </div>
 
       {/* Center Controls */}
@@ -244,6 +257,19 @@ const ControlBar = ({
           title="Open Collaborative Whiteboard"
         >
           <Palette className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
+        </button>
+
+        {/* Record Meeting Toggle */}
+        <button
+          onClick={onToggleRecording}
+          className={`p-2.5 sm:p-3 rounded-2xl transition-all border cursor-pointer shrink-0 ${
+            isRecording
+               ? "bg-rose-600 border-rose-700 text-white shadow-md shadow-rose-500/30 animate-pulse"
+               : "bg-slate-100 hover:bg-slate-200 border-slate-200 text-slate-700"
+          }`}
+          title={isRecording ? "Stop Recording" : "Record Meeting"}
+        >
+          {isRecording ? <Square className="w-4 h-4 sm:w-4.5 sm:h-4.5" /> : <Circle className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-rose-500 fill-rose-500" />}
         </button>
 
         {/* Settings Button */}

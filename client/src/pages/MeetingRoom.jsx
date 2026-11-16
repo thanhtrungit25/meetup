@@ -14,6 +14,7 @@ import MeetingNotesDrawer from "../components/meeting/MeetingNotesDrawer";
 import ReactionsOverlay from "../components/meeting/ReactionsOverlay";
 import SettingsModal, { VIRTUAL_BACKGROUNDS } from "../components/meeting/SettingsModal";
 import WhiteboardModal from "../components/meeting/WhiteboardModal";
+import { useRecording } from "../hooks/useRecording";
 
 const Meeting = () => {
   const navigate = useNavigate();
@@ -101,6 +102,12 @@ const Meeting = () => {
   // Initialize Chat
   const { isChatOpen, toggleChat, messages, sendMessage, unreadCount } =
     useChat(meetingId, userData, getToken);
+
+  const {
+    isRecording,
+    recordingTime,
+    toggleRecording,
+  } = useRecording(meetingId);
 
   const hostId = meeting?.host?.id || meeting?.host;
   const isHost = Boolean(
@@ -206,6 +213,8 @@ const Meeting = () => {
         videoEnabled={videoEnabled}
         isHandRaised={isHandRaised}
         isScreenSharing={isScreenSharing}
+        isRecording={isRecording}
+        recordingTime={recordingTime}
         onToggleAudio={toggleAudio}
         onToggleVideo={toggleVideo}
         onToggleChat={toggleChat}
@@ -215,6 +224,7 @@ const Meeting = () => {
         onOpenSettings={() => setIsSettingsOpen(true)}
         onOpenWhiteboard={() => setIsWhiteboardOpen(true)}
         onToggleScreenShare={toggleScreenShare}
+        onToggleRecording={toggleRecording}
         isChatOpen={isChatOpen}
         isParticipantsOpen={isParticipantsOpen}
         isNotesOpen={isNotesOpen}
