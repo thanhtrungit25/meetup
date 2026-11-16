@@ -8,6 +8,7 @@ const VideoGrid = ({
   audioEnabled,
   videoEnabled,
   isLocalHandRaised,
+  virtualBackground,
 }) => {
   const totalParticipants = 1 + remoteUsers.length;
 
@@ -34,6 +35,7 @@ const VideoGrid = ({
           audioEnabled={audioEnabled}
           videoEnabled={videoEnabled}
           isHandRaised={isLocalHandRaised}
+          virtualBackground={virtualBackground}
         />
 
         {/* Remote Users Titles */}

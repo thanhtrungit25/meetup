@@ -1,5 +1,6 @@
 import { MicOffIcon, UserIcon, VideoOffIcon, Wifi } from "lucide-react";
 import React, { useEffect, useRef } from "react";
+import { VIRTUAL_BACKGROUNDS } from "./SettingsModal";
 
 const VideoTitle = ({
   stream,
@@ -8,6 +9,7 @@ const VideoTitle = ({
   audioEnabled = true,
   videoEnabled = true,
   isHandRaised,
+  virtualBackground,
 }) => {
   const videoRef = useRef(null);
 
@@ -18,7 +20,16 @@ const VideoTitle = ({
   }, [stream]);
 
   return (
-    <div className={`relative group w-full h-full min-h-50 rounded-2xl overflow-hidden shadow-md flex items-center justify-center border ${isHandRaised ? "border-amber-400 ring-2 ring-amber-300" : "border-slate-300"}`}>
+    <div className={`relative group w-full h-full min-h-50 bg-[#eceff1] aspect-video rounded-2xl overflow-hidden shadow-md flex items-center justify-center border ${isHandRaised ? "border-amber-400 ring-2 ring-amber-300" : "border-slate-300"}`}>
+
+      {/* Virtual Background Wallpaper layer if active */}
+      {isLocal && virtualBackground?.img && videoEnabled && (
+        <img
+          src={virtualBackground.img}
+          alt="Virtual Background"
+          className="absolute inset-0 w-full h-full object-cover z-10"
+        />
+      )}
 
       {/* Top Left: Raised Hand Badge */}
       <div className="absolute top-3.5 left-3.5 flex items-center gap-2 z-10">
@@ -54,10 +65,10 @@ const VideoTitle = ({
       {/* Camera off placeholder */}
       {!videoEnabled && (
         <div className="flex flex-col items-center justify-center space-y-3 z-10">
-          <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full border-2 border-indigo-400/40 flex items-center justify-center bg-linear-to-tr from-blue-600 to-indigo-500 text-white text-2xl font-bold uppercase shadow-inner">
+          <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full border-2 border-indigo-400/40 flex items-center justify-center bg-linear-to-tr from-blue-600 to-indigo-500 text-white text-2xl font-bold uppercase shadow-inner ring-4 ring-white/80">
             {name ? name.charAt(0) : <UserIcon className="w-8 h-8" />}
           </div>
-          <span className="text-xs font-semibold px-3 py-1 rounded-full bg-slate-800/90 text-slate-300 border border-slate-700/60 flex items-center gap-1.5 shadow-xs">
+          <span className="absolute bottom-3 right-3 text-xs font-semibold px-3 py-1.5 rounded-full bg-slate-800/90 text-slate-300 border border-slate-700/60 flex items-center gap-1.5 shadow-xs">
             <VideoOffIcon className="w-3.5 h-3.5 text-rose-400" />
             Camera Off
           </span>
