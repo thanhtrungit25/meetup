@@ -13,6 +13,7 @@ import Loader from "../components/Loader";
 import MeetingNotesDrawer from "../components/meeting/MeetingNotesDrawer";
 import ReactionsOverlay from "../components/meeting/ReactionsOverlay";
 import SettingsModal, { VIRTUAL_BACKGROUNDS } from "../components/meeting/SettingsModal";
+import WhiteboardModal from "../components/meeting/WhiteboardModal";
 
 const Meeting = () => {
   const navigate = useNavigate();
@@ -28,6 +29,7 @@ const Meeting = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [virtualBackground, setVirtualBackground] = useState(VIRTUAL_BACKGROUNDS[0]);
   const [noiseSuppressionEnabled, setNoiseSuppressionEnabled] = useState(true);
+  const [isWhiteboardOpen, setIsWhiteboardOpen] = useState(false);
 
   const userData = useMemo(() => {
     if (!user) return null;
@@ -176,6 +178,13 @@ const Meeting = () => {
           currentUser={userData.name}
         />
 
+        {/* Collaborative Whiteboard Modal */}
+        <WhiteboardModal
+          isOpen={isWhiteboardOpen}
+          onClose={() => setIsWhiteboardOpen(false)}
+          roomId={meetingId || meeting.meetingId}
+        />
+
         {/* Audio & Video Quality Settings Modal */}
         <SettingsModal
           isOpen={isSettingsOpen}
@@ -201,6 +210,7 @@ const Meeting = () => {
         onToggleNotes={() => setIsNotesOpen((prev) => !prev)}
         onToggleRaiseHand={toggleRaiseHand}
         onOpenSettings={() => setIsSettingsOpen(true)}
+        onOpenWhiteboard={() => setIsWhiteboardOpen(true)}
         isChatOpen={isChatOpen}
         isParticipantsOpen={isParticipantsOpen}
         isNotesOpen={isNotesOpen}

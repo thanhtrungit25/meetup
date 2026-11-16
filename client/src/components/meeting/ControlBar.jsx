@@ -8,6 +8,7 @@ import {
   MessagesSquareIcon,
   MicIcon,
   MicOffIcon,
+  Palette,
   PhoneOffIcon,
   Settings,
   Smile,
@@ -36,6 +37,7 @@ const ControlBar = ({
   participantCount,
   isHost,
   onSendReaction,
+  onOpenWhiteboard,
   onOpenSettings,
   onLeave,
   onEndMeeting,
@@ -218,6 +220,15 @@ const ControlBar = ({
             </div>
           )}
         </div>
+
+        {/* Whiteboard Modal Trigger */}
+        <button
+          onClick={onOpenWhiteboard}
+          className="p-2.5 sm:p-3 rounded-2xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 transition-all cursor-pointer shrink-0"
+          title="Open Collaborative Whiteboard"
+        >
+          <Palette className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
+        </button>
 
         {/* Settings Button */}
         <button
