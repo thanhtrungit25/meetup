@@ -164,14 +164,14 @@ const ControlBar = ({
         {/* Chat Toggle */}
         <button
           onClick={onToggleChat}
-          className={`p-3.5 rounded-2xl transition-all cursor-pointer border ${
+          className={`p-2.5 rounded-2xl transition-all cursor-pointer border ${
             isChatOpen
               ? "bg-primary text-white border-primary shadow-md shadow-primary/20"
               : "bg-slate-100 text-slate-800 hover:bg-slate-200 border-slate-300 shadow-xs relative"
           }`}
           title="Toggle In-Meeting Chat"
         >
-          <MessagesSquareIcon className="w-5 h-5" />
+          <MessagesSquareIcon className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
           {unreadCount > 0 && !isChatOpen && (
             <span className="absolute -top-1 -right-1 bg-primary text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-white shadow-xs">
               {unreadCount}
@@ -182,14 +182,14 @@ const ControlBar = ({
         {/* Participants Toggle */}
         <button
           onClick={onToggleParticipants}
-          className={`relative p-3.5 rounded-2xl transition-all cursor-pointer border ${
+          className={`relative p-2.5 rounded-2xl transition-all cursor-pointer border ${
             isParticipantsOpen
               ? "bg-primary text-white border-primary shadow-md shadow-primary/20"
               : "bg-slate-100 text-slate-800 hover:bg-slate-200 border-slate-300 shadow-xs"
           }`}
           title="Toggle Participants List"
         >
-          <UsersIcon className="w-5 h-5" />
+          <UsersIcon className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
           <span className="absolute -top-1 -right-1 bg-slate-200 text-slate-800 text-[10px] font-bold px-1.5 py-0.5 rounded-full border border-slate-300">
             {participantCount}
           </span>
@@ -198,14 +198,14 @@ const ControlBar = ({
         {/* Shared Notes Drawer Trigger */}
         <button
           onClick={onToggleNotes}
-          className={`relative p-3.5 rounded-2xl transition-all cursor-pointer border ${
+          className={`relative p-2.5 rounded-2xl transition-all cursor-pointer border ${
             isNotesOpen
               ? "bg-primary text-white border-primary shadow-md shadow-primary/20"
               : "bg-slate-100 text-slate-800 hover:bg-slate-200 border-slate-300 shadow-xs"
           }`}
           title="Open Shared Meeting Notes"
         >
-          <FileText className="h-5 w-5" />
+          <FileText className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
         </button>
 
         {/* Raise Hand Toggle */}
